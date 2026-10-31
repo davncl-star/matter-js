@@ -155,8 +155,23 @@ var Body = require('../body/Body');
         Pairs.update(pairs, collisions, timestamp);
 
         // wake up bodies involved in collisions
-        if (engine.enableSleeping)
+        if (engine.enableSleeping) {
             Sleeping.afterCollisions(pairs.list);
+
+            // wake sleeping bodies that just lost a contact (e.g. their support was
+            // removed), otherwise a body can remain asleep while floating in mid-air
+            for (i = 0; i < pairs.collisionEnd.length; i++) {
+                var endedPair = pairs.collisionEnd[i],
+                    endedParentA = endedPair.collision.parentA,
+                    endedParentB = endedPair.collision.parentB;
+
+                if (!endedParentA.isStatic && endedParentA.isSleeping)
+                    Sleeping.set(endedParentA, false);
+
+                if (!endedParentB.isStatic && endedParentB.isSleeping)
+                    Sleeping.set(endedParentB, false);
+            }
+        }
 
         // trigger collision events
         if (pairs.collisionStart.length > 0) {
