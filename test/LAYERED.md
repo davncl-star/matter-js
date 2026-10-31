@@ -30,6 +30,12 @@ pnpm run test:l3            # layer 3 (~2s)
 pnpm run test:l4            # layer 4 (~50-90s, depends on machine and Node version)
 ```
 
+If `pnpm` refuses to start with `This project is configured to use >=11.11.0 of pnpm`,
+that gate lives in `package.json` (`devEngines` / `packageManager`) and blocks every
+`pnpm run` script, including the nested call inside `pnpm test`. The suite itself has no
+pnpm dependency - run the `node` commands above directly. (Verified on Node 22.23.4
+and Node 24.16.0, Windows, with pnpm 11.4.0 installed.)
+
 CI: `.github/workflows/layered-tests.yml` runs the suite on ubuntu and windows
 with Node 22 on every push / PR touching `src/`, `build/`, `examples/` or `test/`.
 It has two jobs: `layered-tests` (no install, so `concave`/`raycasting` are
