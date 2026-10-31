@@ -80,11 +80,19 @@ var Common = require('../core/Common');
      * @return {vector} The centre point
      */
     Vertices.centre = function(vertices) {
+        if (vertices.length === 0)
+            return { x: 0, y: 0 };
+
         var area = Vertices.area(vertices, true),
             centre = { x: 0, y: 0 },
             cross,
             temp,
             j;
+
+        // degenerate zero-area input (e.g. collinear or coincident vertices):
+        // fall back to the mean rather than dividing by zero (NaN centroid)
+        if (area === 0)
+            return Vertices.mean(vertices);
 
         for (var i = 0; i < vertices.length; i++) {
             j = (i + 1) % vertices.length;
