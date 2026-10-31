@@ -747,6 +747,13 @@ var Axes = require('../geometry/Axes');
     Body.update = function(body, deltaTime) {
         deltaTime = (typeof deltaTime !== 'undefined' ? deltaTime : (1000 / 60)) * body.timeScale;
 
+        // a non-positive effective delta (e.g. body.timeScale = 0) freezes this body:
+        // skip integration entirely so velocity stays consistent and NaN-free
+        // (previously deltaTime became 0 and updateVelocities divided by it)
+        if (!(deltaTime > 0)) {
+            return;
+        }
+
         var deltaTimeSquared = deltaTime * deltaTime,
             correction = Body._timeCorrection ? deltaTime / (body.deltaTime || deltaTime) : 1;
 
