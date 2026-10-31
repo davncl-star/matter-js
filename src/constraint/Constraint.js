@@ -56,7 +56,11 @@ var Common = require('../core/Common');
         constraint.id = constraint.id || Common.nextId();
         constraint.label = constraint.label || 'Constraint';
         constraint.type = 'constraint';
-        constraint.stiffness = constraint.stiffness || (constraint.length > 0 ? 1 : 0.7);
+        // an explicit stiffness of 0 must be preserved (e.g. to disable a constraint),
+        // so only fall back to the default when no valid number was given
+        constraint.stiffness = (typeof constraint.stiffness === 'number' && !isNaN(constraint.stiffness))
+            ? constraint.stiffness
+            : (constraint.length > 0 ? 1 : 0.7);
         constraint.damping = constraint.damping || 0;
         constraint.angularStiffness = constraint.angularStiffness || 0;
         constraint.angleA = constraint.bodyA ? constraint.bodyA.angle : constraint.angleA;
