@@ -348,6 +348,14 @@ var Body = require('./Body');
             }
         }
         
+        // reset the sleep counter of removed bodies so any cached collision pairs
+        // are released by Pairs.update (matching Composite.removeBody behaviour)
+        for (i = 0; i < composite.bodies.length; i++) {
+            if (!keepStatic || !composite.bodies[i].isStatic) {
+                composite.bodies[i].sleepCounter = 0;
+            }
+        }
+
         if (keepStatic) {
             composite.bodies = composite.bodies.filter(function(body) { return body.isStatic; });
         } else {
