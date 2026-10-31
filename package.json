@@ -74,8 +74,7 @@
     "test:l1-l2": "node --test test/L1_L2.spec.js",
     "test:l3": "node --expose-gc --test test/L3.spec.js",
     "test:l4": "node --expose-gc --test test/L4.spec.js",
-    "test-unit": "node --expose-gc --test test/L1_L2.spec.js test/L3.spec.js",
-    "test-e2e": "node --expose-gc --test test/L4.spec.js"
+    "test-unit": "node --expose-gc --test test/L1_L2.spec.js test/L3.spec.js"
   },
   "files": [
     "src",
@@ -85,5 +84,8 @@
     "CHANGELOG.md",
     "LICENSE",
     "package.json"
-  ]
+  ],
+  "jest": {
+    "testPathIgnorePatterns": ["/test/L[0-9]"]
+  }
 }
