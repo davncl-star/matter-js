@@ -69,7 +69,13 @@
     "test": "pnpm run test-node",
     "test-node": "pnpm run build-dev && node --expose-gc ./node_modules/jest/bin/jest.js --force-exit --no-cache --runInBand ./test/Examples.spec.js",
     "test-save": "pnpm run test-node --save=true",
-    "test-watch": "pnpm run test-node --watch"
+    "test-watch": "pnpm run test-node --watch",
+    "test:layers": "node --expose-gc --test test/L1_L2.spec.js test/L3.spec.js test/L4.spec.js",
+    "test:l1-l2": "node --test test/L1_L2.spec.js",
+    "test:l3": "node --expose-gc --test test/L3.spec.js",
+    "test:l4": "node --expose-gc --test test/L4.spec.js",
+    "test-unit": "node --expose-gc --test test/L1_L2.spec.js test/L3.spec.js",
+    "test-e2e": "node --expose-gc --test test/L4.spec.js"
   },
   "files": [
     "src",

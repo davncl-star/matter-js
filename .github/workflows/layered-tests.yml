@@ -1,0 +1,85 @@
+name: Layered physics tests (L1-L4)
+
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'build/**'
+      - 'examples/**'
+      - 'test/**'
+      - '.github/workflows/layered-tests.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'build/**'
+      - 'examples/**'
+      - 'test/**'
+      - '.github/workflows/layered-tests.yml'
+
+jobs:
+  layered-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # The layered suite is dependency-free: it tests src/ and build/ directly
+      # with node:test, so no install step is required here. Note the consequence:
+      # L4 skips `concave` and `raycasting` in this job because they need
+      # `poly-decomp`. The `layered-tests-external` job below installs and covers
+      # them - do not drop it and assume this job's green is complete.
+      - name: L1 geometry & L2 collision / impulse solving
+        run: node --test test/L1_L2.spec.js
+
+      - name: L3 state machine & cache lifecycle
+        run: node --expose-gc --test test/L3.spec.js
+
+      - name: L4 deterministic regression & stress benchmarks
+        run: node --expose-gc --test test/L4.spec.js
+
+  # `concave` and `raycasting` build concave bodies via Bodies.fromVertices, which
+  # is exactly where the parallel axis theorem change (finding F1) bites hardest.
+  # Both need `poly-decomp`, so the dependency-free job above never executes them.
+  # This job installs once and lets L4 widen its own coverage (it self-detects
+  # poly-decomp), then fails loudly if the detection ever stops working - otherwise
+  # a missing optional dep would quietly turn into a skipped scene again.
+  layered-tests-external:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: pnpm/setup@703c52620218391530e48b9e8870d5c0082e1b9b
+        with:
+          version: 12.5.1
+          cache: true
+          require-lockfile: true
+          install: false
+
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: L4 with optional dependencies (concave / raycasting covered)
+        shell: bash
+        run: |
+          set -o pipefail
+          node --expose-gc --test test/L4.spec.js 2>&1 | tee l4-external.log
+          grep -q 'poly-decomp present' l4-external.log || {
+            echo '::error::poly-decomp was not detected, so concave/raycasting were skipped again';
+            exit 1;
+          }
