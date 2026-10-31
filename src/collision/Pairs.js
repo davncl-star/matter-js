@@ -93,8 +93,9 @@ var Common = require('../core/Common');
             } else {
                 pairSetActive(pair, false, timestamp);
 
-                // keep inactive pairs if both bodies may be sleeping
-                if (pair.collision.bodyA.sleepCounter > 0 && pair.collision.bodyB.sleepCounter > 0) {
+                // keep inactive pairs if both parent bodies may be sleeping
+                // (must check the parents: compound body parts never get a sleepCounter)
+                if (pair.collision.parentA.sleepCounter > 0 && pair.collision.parentB.sleepCounter > 0) {
                     pairsList[pairsListIndex++] = pair;
                 } else {
                     // remove inactive pairs if either body awake
